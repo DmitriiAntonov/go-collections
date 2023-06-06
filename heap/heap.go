@@ -1,10 +1,12 @@
 package heap
 
+// Heap implemented the binary heap data structure
 type Heap[T any] struct {
 	heap []T
 	less func(i, j T) bool
 }
 
+// New create new instance of the heap
 func New[T any](less func(i T, j T) bool) *Heap[T] {
 	return &Heap[T]{heap: make([]T, 0), less: less}
 }
