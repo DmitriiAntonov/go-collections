@@ -1,20 +1,21 @@
 package heap
 
 type Heap[T any] struct {
-	heap       []T
-	comparator func(i, j T) bool
+	heap []T
+	less func(i, j T) bool
 }
 
-func New[T any](comparator func(i T, j T) bool) *Heap[T] {
-	return &Heap[T]{heap: make([]T, 0), comparator: comparator}
+func New[T any](less func(i T, j T) bool) *Heap[T] {
+	return &Heap[T]{heap: make([]T, 0), less: less}
 }
 
 func (h *Heap[T]) Push(item T) {
 	h.heap = append(h.heap, item)
+	h.up(len(h.heap) - 1)
+}
 
-	index := len(h.heap) - 1
-
-	for !h.comparator(h.heap[parent(index)], h.heap[index]) {
+func (h *Heap[T]) up(index int) {
+	for index != 0 && !h.less(h.heap[parent(index)], h.heap[index]) {
 		h.heap[index], h.heap[parent(index)] = h.heap[parent(index)], h.heap[index]
 		index = parent(index)
 	}
@@ -26,25 +27,27 @@ func (h *Heap[T]) Pop() T {
 	}
 
 	item := h.heap[0]
-	h.heap = h.heap[1:]
+	h.heap[0] = h.heap[len(h.heap)-1]
+	h.heap = h.heap[:len(h.heap)-1]
+	h.down(0)
 
 	return item
 }
 
-func (h *Heap[T]) heapify(index int) {
-	leftChildIndex, rightChildIndex, compared := left(index), right(index), index
+func (h *Heap[T]) down(index int) {
+	compared := index
 
-	if leftChildIndex < len(h.heap) && !h.comparator(h.heap[compared], h.heap[leftChildIndex]) {
-		compared = leftChildIndex
+	if left(index) < len(h.heap) && !h.less(h.heap[compared], h.heap[left(index)]) {
+		compared = left(index)
 	}
 
-	if rightChildIndex < len(h.heap) && !h.comparator(h.heap[compared], h.heap[rightChildIndex]) {
-		compared = rightChildIndex
+	if right(index) < len(h.heap) && !h.less(h.heap[compared], h.heap[right(index)]) {
+		compared = right(index)
 	}
 
 	if index != compared {
 		h.heap[index], h.heap[compared] = h.heap[compared], h.heap[index]
-		h.heapify(compared)
+		h.down(compared)
 	}
 }
 
